@@ -1,2 +1,2 @@
-# Email Cross Client Validation
-> Ensure everyone receives every email perfectly
+# Email HTML Validator
+> Perfectly styled emails for everyone, every time.
