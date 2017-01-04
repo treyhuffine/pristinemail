@@ -4,7 +4,7 @@ const fs = require('fs'),
   Queue = require("queue-fifo");
 
 
-const file = './example.html',
+const file = '../examples/example.html',
   platforms = [
     'gmail',
     'gmail-android',
