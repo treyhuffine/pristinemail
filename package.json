@@ -23,5 +23,9 @@
     "outlook"
   ],
   "author": "Trey Huffine <treyhuffine@gmail.com>",
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "queue-fifo": "^0.2.3"
+  }
 }
