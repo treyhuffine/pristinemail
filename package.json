@@ -1,5 +1,5 @@
 {
-  "name": "email-cross-client-validation",
+  "name": "email-html-validator",
   "version": "1.0.0",
   "description": "Validate html email styles for all major email clients to make sure your email is perfect every time",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://www.github.com/treyhuffine/email-cross-client-validation"
+    "url": "https://www.github.com/treyhuffine/email-html-validator"
   },
   "keywords": [
     "email",
