@@ -1,6 +1,6 @@
 {
   "name": "email-html-validator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Cross client email style and css validations to ensure perfect emails for everyone, everytime.",
   "author": "Trey Huffine <treyhuffine@gmail.com>",
   "main": "lib/index.js",
