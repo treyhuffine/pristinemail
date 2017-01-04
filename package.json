@@ -1,0 +1,27 @@
+{
+  "name": "email-cross-client-validation",
+  "version": "1.0.0",
+  "description": "Validate html email styles for all major email clients to make sure your email is perfect every time",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/treyhuffine/email-cross-client-validation"
+  },
+  "keywords": [
+    "email",
+    "html",
+    "style",
+    "css",
+    "validation",
+    "cross",
+    "client",
+    "cross-client",
+    "gmail",
+    "outlook"
+  ],
+  "author": "Trey Huffine <treyhuffine@gmail.com>",
+  "license": "BSD-3-Clause"
+}
