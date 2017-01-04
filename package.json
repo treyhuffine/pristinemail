@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "eslint ./examples ./scripts ./src ./test",
     "scrape": "babel-node scripts/scrape-style-support.js > src/support-matrix.json",
-    "compile": "babel -d lib/ src/ && cp -v src/supportMatrix.json lib/",
+    "compile": "babel -d lib/ src/ && cp -v src/support-matrix.json lib/",
     "prepublish": "npm run compile",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:cov": "echo \"Error: no test specified\" && exit 1"
@@ -29,7 +29,7 @@
     "outlook"
   ],
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "babel": "^6.5.2",
     "babel-cli": "^6.18.0",
     "babel-eslint": "^7.1.1",
