@@ -1,7 +1,7 @@
-const fs = require('fs'),
-  cheerio = require('cheerio'),
-  suppoertMatrix = require('./support-matrix.json'),
-  Queue = require("queue-fifo");
+import fs from 'fs';
+import cheerio from 'cheerio';
+import Queue from 'queue-fifo';
+import suppoertMatrix from './support-matrix.json';
 
 
 const file = '../examples/example.html',
