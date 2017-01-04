@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import Queue from 'queue-fifo';
 import supportMatrix from './support-matrix.json';
@@ -13,36 +14,13 @@ const file = path.join(__dirname, '../examples/example.html'),
     'yahoo-mail',
     'outlook',
     'outlook-legacy',
-    'outlook-web',
+    'outlook-web'
   ];
-
-function htmlEmailStyleValidation(fileName) {
-  const $ = cheerio.load(fs.readFileSync(fileName)),
-    $root = $('body')[0],
-    queue = new Queue();
-
-  queue.enqueue($root);
-
-  while (!queue.isEmpty()) {
-    const node = $(queue.dequeue()),
-      children = node.children();
-
-    validateNodeStyle(node);
-
-    if (children.length) {
-      for (let i = 0; i < children.length; i++) {
-        let child = children[i];
-
-        queue.enqueue(child);
-      }
-    }
-  }
-}
 
 function validateNodeStyle(node) {
   const css = node.css();
 
-  for (let style in css) {
+  for (const style in css) {
     const compatabilityInfo = supportMatrix[style],
       unsupported = [],
       messages = new Map();
@@ -77,4 +55,44 @@ function validateNodeStyle(node) {
   }
 }
 
-htmlEmailStyleValidation(file);
+function parseHtml(html) {
+  const $ = cheerio.load(html),
+    $root = $('body')[0],
+    queue = new Queue();
+
+  queue.enqueue($root);
+
+  while (!queue.isEmpty()) {
+    const node = $(queue.dequeue()),
+      children = node.children();
+
+    validateNodeStyle(node);
+
+    if (children.length) {
+      for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+
+        queue.enqueue(child);
+      }
+    }
+  }
+}
+
+export function validateFile(fileName) {
+  const html = fs.readFileSync(fileName);
+  parseHtml(html);
+}
+
+export function validateUrl(url) {
+  fetch(url)
+    .then((res) => res.text())
+    .then((html) => {
+      parseHtml(html);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+validateFile(file);
+validateUrl('http://www.imdb.com/title/tt1229340/');
