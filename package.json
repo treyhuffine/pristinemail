@@ -1,6 +1,6 @@
 {
   "name": "email-html-validator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cross client email style and css validations to ensure perfect emails for everyone, everytime.",
   "main": "index.js",
   "scripts": {
