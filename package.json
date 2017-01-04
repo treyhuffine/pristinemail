@@ -9,6 +9,8 @@
     "scrape": "babel-node scripts/scrape-style-support.js > src/support-matrix.json",
     "compile": "babel -d lib/ src/ && cp -v src/support-matrix.json lib/",
     "prepublish": "npm run compile",
+    "start": "node lib/index",
+    "dev": "babel-node src/index",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:cov": "echo \"Error: no test specified\" && exit 1"
   },

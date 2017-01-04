@@ -1,10 +1,10 @@
 import fs from 'fs';
+import path from 'path';
 import cheerio from 'cheerio';
 import Queue from 'queue-fifo';
-import suppoertMatrix from './support-matrix.json';
+import supportMatrix from './support-matrix.json';
 
-
-const file = '../examples/example.html',
+const file = path.join(__dirname, '../examples/example.html'),
   platforms = [
     'gmail',
     'gmail-android',
@@ -43,7 +43,7 @@ function validateNodeStyle(node) {
   const css = node.css();
 
   for (let style in css) {
-    const compatabilityInfo = suppoertMatrix[style],
+    const compatabilityInfo = supportMatrix[style],
       unsupported = [],
       messages = new Map();
 
