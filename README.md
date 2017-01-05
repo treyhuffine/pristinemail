@@ -1,2 +1,2 @@
-# Email HTML Validator
+# Pristinemail
 > Perfectly styled emails for everyone, every time.
