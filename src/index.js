@@ -135,6 +135,45 @@ function writeWarningsToTxt(warnings, source) {
   console.log(`File saved to ${writePath}`);
 }
 
+function writeWarningsToHtml(warnings, source) {
+  const { unrecognized, unsupported } = warnings,
+    writePath = path.join(__dirname, './validation.html'),
+    writeStream = fs.createWriteStream(writePath);
+
+  writeStream.write(`Source: ${source} \n\n`);
+
+  if (unrecognized.size > 0) {
+    writeStream.write('Unrecognized styles:\n\n');
+    writeStream.write('');
+
+    unrecognized.forEach((style) => {
+      writeStream.write(`  * ${style}\n`);
+    });
+
+    writeStream.write('\n----------------------------------------- \n\n');
+  }
+
+  if (unsupported.size > 0) {
+    writeStream.write('Unsupported Styles:\n');
+
+    for (const [style, styleUsage] of unsupported) {
+      const styleNameText = `\n ${style} - `,
+        occurences = styleUsage.occurences / styleUsage.platforms.size,
+        occurencesText = `${occurences} occurences\n`;
+
+      writeStream.write(styleNameText + occurencesText);
+
+      for (const [platform, message] of styleUsage.platforms) {
+        writeStream.write(`   * ${platform}${message}\n`);
+      }
+    }
+  }
+
+  writeStream.end();
+
+  console.log(`File saved to ${writePath}`);
+}
+
 function parseHtml(html, source) {
   const $ = cheerio.load(html),
     $root = $('body')[0],
@@ -194,4 +233,4 @@ export function validateUrl(url, options = {}) {
     });
 }
 
-validateFile(file)
+validateFile(file, {output: 'html'})
