@@ -61,9 +61,9 @@ function validateNodeStyle(node, warnings) {
   return { unsupported, unrecognized };
 }
 
-function printWarnings(warnings, source) {
+function logWarnings(warnings, source) {
   const { unrecognized, unsupported } = warnings;
-  console.log(chalk.bold.underline(`\nSource: ${source} \n`));
+  console.log(chalk.bold.underline(`\nSource: [${source}](${source}) \n`));
 
   if (unrecognized.size > 0) {
     console.log(chalk.white.bgYellow(' Unrecognized styles: '));
@@ -96,77 +96,40 @@ function printWarnings(warnings, source) {
   }
 }
 
-function writeWarningsToTxt(warnings, source) {
+function writeWarningsToMarkdown(warnings, source) {
   const { unrecognized, unsupported } = warnings,
-    writePath = path.join(__dirname, './validation.txt'),
+    writePath = path.join(__dirname, './validation.md'),
     writeStream = fs.createWriteStream(writePath);
 
-  writeStream.write(`Source: ${source} \n\n`);
-
-  if (unrecognized.size > 0) {
-    writeStream.write('Unrecognized styles:\n\n');
-    writeStream.write('');
-
-    unrecognized.forEach((style) => {
-      writeStream.write(`  * ${style}\n`);
-    });
-
-    writeStream.write('\n----------------------------------------- \n\n');
-  }
+  writeStream.write(`## Source: ${source} \n\n`);
 
   if (unsupported.size > 0) {
-    writeStream.write('Unsupported Styles:\n');
+    writeStream.write('### Unsupported Styles:\n');
 
     for (const [style, styleUsage] of unsupported) {
-      const styleNameText = `\n ${style} - `,
+      const styleNameText = `__\`${style}\`__ - `,
         occurences = styleUsage.occurences / styleUsage.platforms.size,
-        occurencesText = `${occurences} occurences\n`;
+        occurencesText = `${occurences} occurences \n`;
 
       writeStream.write(styleNameText + occurencesText);
 
       for (const [platform, message] of styleUsage.platforms) {
-        writeStream.write(`   * ${platform}${message}\n`);
+        writeStream.write(` * ${platform}${message}\n`);
       }
+
+      writeStream.write('\n');
     }
+
+    writeStream.write('\n___ \n');
   }
 
-  writeStream.end();
-
-  console.log(`File saved to ${writePath}`);
-}
-
-function writeWarningsToHtml(warnings, source) {
-  const { unrecognized, unsupported } = warnings,
-    writePath = path.join(__dirname, './validation.html'),
-    writeStream = fs.createWriteStream(writePath);
-
-  writeStream.write(`Source: ${source} \n\n`);
-
   if (unrecognized.size > 0) {
-    writeStream.write('Unrecognized styles:\n\n');
+    writeStream.write('### Unrecognized styles:\n\n');
     writeStream.write('');
 
     unrecognized.forEach((style) => {
-      writeStream.write(`  * ${style}\n`);
+      writeStream.write(`* ${style}\n`);
     });
-
-    writeStream.write('\n----------------------------------------- \n\n');
-  }
-
-  if (unsupported.size > 0) {
-    writeStream.write('Unsupported Styles:\n');
-
-    for (const [style, styleUsage] of unsupported) {
-      const styleNameText = `\n ${style} - `,
-        occurences = styleUsage.occurences / styleUsage.platforms.size,
-        occurencesText = `${occurences} occurences\n`;
-
-      writeStream.write(styleNameText + occurencesText);
-
-      for (const [platform, message] of styleUsage.platforms) {
-        writeStream.write(`   * ${platform}${message}\n`);
-      }
-    }
   }
 
   writeStream.end();
@@ -204,12 +167,25 @@ function parseHtml(html, source) {
 }
 
 function processWarnings(warnings, source, options) {
-  if (options.output === 'txt') {
-    writeWarningsToTxt(warnings, source)
-  } else if (options.output === 'html') {
-    writeWarningsToHtml(warnings, source);
+  const outputMethods = {
+    'markdown': writeWarningsToMarkdown,
+    'print': logWarnings
+  }
+
+  if (!options.output) {
+    outputMethods.print(warnings, source);
+  } else if (Array.isArray(options.output)) {
+    options.output.forEach((method) => {
+      if (outputMethods[method]) {
+        outputMethods[method](warnings, source);
+      }
+    });
+  } else if (typeof options.output === 'string') {
+      if (outputMethods[options.output]) {
+        outputMethods[options.output](warnings, source)
+      }
   } else {
-    printWarnings(warnings, source);
+    return new Error('Incompatible output method');
   }
 }
 
@@ -233,4 +209,4 @@ export function validateUrl(url, options = {}) {
     });
 }
 
-validateFile(file, {output: 'html'})
+validateFile(file, {output: ['markdown', 'print']});
