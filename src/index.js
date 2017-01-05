@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import Queue from 'queue-fifo';
 import chalk from 'chalk';
+import marked from 'marked';
 import supportMatrix from './support-matrix.json';
 
 const file = path.join(__dirname, '../examples/example.html'),
@@ -63,18 +64,7 @@ function validateNodeStyle(node, warnings) {
 
 function logWarnings(warnings, source) {
   const { unrecognized, unsupported } = warnings;
-  console.log(chalk.bold.underline(`\nSource: [${source}](${source}) \n`));
-
-  if (unrecognized.size > 0) {
-    console.log(chalk.white.bgYellow(' Unrecognized styles: '));
-    console.log('');
-
-    unrecognized.forEach((style) => {
-      console.log(chalk.yellow(`  * ${style}\n`));
-    });
-
-    console.log(chalk.cyan('\n----------------------------------------- \n\n'));
-  }
+  console.log(chalk.bold.underline(`\nSource: ${source} \n`));
 
   if (unsupported.size > 0) {
     console.log(chalk.white.bgRed(' Unsupported Styles: '));
@@ -93,48 +83,60 @@ function logWarnings(warnings, source) {
 
       console.log('');
     }
+
+    console.log(chalk.cyan('\n----------------------------------------- \n\n'));
+  }
+
+  if (unrecognized.size > 0) {
+    console.log(chalk.white.bgYellow(' Unrecognized styles: '));
+    console.log('');
+
+    unrecognized.forEach((style) => {
+      console.log(chalk.yellow(`  * ${style}`));
+    });
+
+    console.log('');
   }
 }
 
 function writeWarningsToMarkdown(warnings, source) {
   const { unrecognized, unsupported } = warnings,
-    writePath = path.join(__dirname, './validation.md'),
-    writeStream = fs.createWriteStream(writePath);
+    writePath = path.join(__dirname, './validation.md');
+  let fileText = '';
 
-  writeStream.write(`## Source: ${source} \n\n`);
+  fileText += `## Source: [${source}](${source}) \n\n`;
 
   if (unsupported.size > 0) {
-    writeStream.write('### Unsupported Styles:\n');
+    fileText += '### Unsupported Styles:\n';
 
     for (const [style, styleUsage] of unsupported) {
       const styleNameText = `__\`${style}\`__ - `,
         occurences = styleUsage.occurences / styleUsage.platforms.size,
         occurencesText = `${occurences} occurences \n`;
 
-      writeStream.write(styleNameText + occurencesText);
+      fileText += styleNameText + occurencesText;
 
       for (const [platform, message] of styleUsage.platforms) {
-        writeStream.write(` * ${platform}${message}\n`);
+        fileText += ` * ${platform}${message}\n`;
       }
 
-      writeStream.write('\n');
+      fileText += '\n';
     }
 
-    writeStream.write('\n___ \n');
+    fileText += '\n___ \n';
   }
 
   if (unrecognized.size > 0) {
-    writeStream.write('### Unrecognized styles:\n\n');
-    writeStream.write('');
+    fileText += '### Unrecognized styles:\n\n';
 
     unrecognized.forEach((style) => {
-      writeStream.write(`* ${style}\n`);
+      fileText += `* ${style}\n`;
     });
   }
 
-  writeStream.end();
+  fs.writeFileSync(writePath, fileText);
 
-  console.log(`File saved to ${writePath}`);
+  console.log(chalk.green(`* Markdown saved to ${writePath}`));
 }
 
 function parseHtml(html, source) {
@@ -166,7 +168,7 @@ function parseHtml(html, source) {
   return warnings;
 }
 
-function processWarnings(warnings, source, options) {
+function processWarnings(warnings, source, options = {}) {
   const outputMethods = {
     'markdown': writeWarningsToMarkdown,
     'print': logWarnings
@@ -209,4 +211,53 @@ export function validateUrl(url, options = {}) {
     });
 }
 
+function buildHtml(markdown) {
+  const html =
+    `<!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body {
+            padding: 0 40px;
+          }
+          #unsupported-styles- {
+            color: red;
+          }
+          #unrecognized-styles- {
+            color: orange;
+          }
+          code {
+            backround-color: #F7F7F7;
+            padding: 2px;
+          }
+          h2 {
+            margin-left: -30px;
+          }
+        </style>
+      </head>
+      <body>
+        ${markdown}
+      </body>
+    </html>`;
+
+    return html;
+}
+
+export function markdownToHtml(fileName, options = {}) {
+  fs.readFile(fileName, 'utf-8', (err, data) => {
+    const html = buildHtml(marked(data));
+    if (options.writeFile && options.writePath) {
+      fs.writeFile(options.writePath, html);
+
+      console.log(chalk.blue(`* HTML saved to ${options.writePath}`));
+    }
+
+    return html;
+  });
+}
+
 validateFile(file, {output: ['markdown', 'print']});
+markdownToHtml(path.join(__dirname, './validation.md'), {
+  writeFile: true,
+  writePath: path.join(__dirname, './validation.html')
+});
