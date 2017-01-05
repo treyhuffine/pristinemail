@@ -44,5 +44,8 @@
     "eslint-config-airbnb": "^13.0.0",
     "node-fetch": "^1.6.3",
     "queue-fifo": "^0.2.3"
+  },
+  "dependencies": {
+    "chalk": "^1.1.3"
   }
 }

@@ -3,9 +3,12 @@ import path from 'path';
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import Queue from 'queue-fifo';
+import chalk from 'chalk';
 import supportMatrix from './support-matrix.json';
 
-const file = path.join(__dirname, '../examples/example.html'),
+const unsupported = new Map(),
+  unrecognized = new Set(),
+  file = path.join(__dirname, '../examples/example.html'),
   platforms = [
     'gmail',
     'gmail-android',
@@ -21,41 +24,75 @@ function validateNodeStyle(node) {
   const css = node.css();
 
   for (const style in css) {
-    const compatabilityInfo = supportMatrix[style],
-      unsupported = [],
-      messages = new Map();
+    const compatabilityInfo = supportMatrix[style];
 
     if (compatabilityInfo) {
       platforms.forEach((platform) => {
-        const platformSupport = compatabilityInfo[platform]
+        const platformSupport = compatabilityInfo[platform];
+        let message = '';
 
         if (typeof platformSupport === 'string') {
-          const msg = platformSupport;
+          message = `: ${platformSupport.toLowerCase()}`;
+        }
 
-          if (!messages.has(msg)) {
-            messages.set(msg, []);
+        if (!platformSupport || message.length > 0) {
+          if (!unsupported.has(style)) {
+            unsupported.set(style, {
+              occurences: 0,
+              platforms: new Map()
+            });
           }
 
-          messages.get(msg).push(platform);
-        } else if (!platformSupport) {
-          unsupported.push(platform);
+          const unsupportedStyle = unsupported.get(style);
+
+          unsupportedStyle.occurences++;
+
+          unsupportedStyle.platforms.set(platform, message);
+
+          unsupported.set(style, unsupportedStyle);
         }
       });
     } else {
-       // console.error(`Unknown style property '${style}'.`);
-    }
-
-    for (const [msg, platforms] of messages) {
-      console.warn(`Warning: Style property '${style}' in ${platforms.join(', ')}: ${msg.toLowerCase()}`)
-    }
-
-    if (unsupported.length) {
-      console.error(`Style property '${style}' on '<${node[0].name}>' not supported in: ${unsupported.join(', ')}.`)
+      if (!unrecognized.has(style)){
+        unrecognized.add(style)
+      }
     }
   }
 }
 
-function parseHtml(html) {
+function printWarnings() {
+  if (unrecognized.size > 0) {
+    console.log(chalk.white.bgYellow(' Unrecognized styles: '));
+    console.log('');
+
+    unrecognized.forEach((style) => {
+      console.log(chalk.yellow(`  * ${style}\n`));
+    });
+
+    console.log(chalk.cyan('\n----------------------------------------- \n\n'));
+  }
+
+  if (unsupported.size > 0) {
+    console.log(chalk.white.bgRed(' Unsupported Styles: '));
+    console.log('');
+
+    for (const [style, styleUsage] of unsupported) {
+      const styleNameText = chalk.red.bold(` ${style} - `),
+        occurences = styleUsage.occurences / styleUsage.platforms.size,
+        occurencesText = chalk.white(`${occurences} occurences`);
+
+      console.log(styleNameText + occurencesText);
+
+      for (const [platform, message] of styleUsage.platforms) {
+        console.log(chalk.red(`  - ${platform}${message}`));
+      }
+
+      console.log('');
+    }
+  }
+}
+
+function parseHtml(html, source) {
   const $ = cheerio.load(html),
     $root = $('body')[0],
     queue = new Queue();
@@ -70,7 +107,7 @@ function parseHtml(html) {
 
     if (children.length) {
       for (let i = 0; i < children.length; i++) {
-        let child = children[i];
+        const child = children[i];
 
         queue.enqueue(child);
       }
@@ -80,14 +117,16 @@ function parseHtml(html) {
 
 export function validateFile(fileName) {
   const html = fs.readFileSync(fileName);
-  parseHtml(html);
+  parseHtml(html, fileName);
+  printWarnings();
 }
 
 export function validateUrl(url) {
   fetch(url)
     .then((res) => res.text())
     .then((html) => {
-      parseHtml(html);
+      parseHtml(html, url);
+      printWarnings();
     })
     .catch((err) => {
       console.log(err);
@@ -95,4 +134,3 @@ export function validateUrl(url) {
 }
 
 validateFile(file);
-validateUrl('http://www.imdb.com/title/tt1229340/');
