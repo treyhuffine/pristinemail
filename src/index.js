@@ -60,7 +60,9 @@ function validateNodeStyle(node) {
   }
 }
 
-function printWarnings() {
+function printWarnings(source) {
+  console.log(chalk.bold.underline(`\nSource: ${source} \n`));
+
   if (unrecognized.size > 0) {
     console.log(chalk.white.bgYellow(' Unrecognized styles: '));
     console.log('');
@@ -79,7 +81,7 @@ function printWarnings() {
     for (const [style, styleUsage] of unsupported) {
       const styleNameText = chalk.red.bold(` ${style} - `),
         occurences = styleUsage.occurences / styleUsage.platforms.size,
-        occurencesText = chalk.white(`${occurences} occurences`);
+        occurencesText = `${occurences} occurences`;
 
       console.log(styleNameText + occurencesText);
 
@@ -118,7 +120,7 @@ function parseHtml(html, source) {
 export function validateFile(fileName) {
   const html = fs.readFileSync(fileName);
   parseHtml(html, fileName);
-  printWarnings();
+  printWarnings(fileName);
 }
 
 export function validateUrl(url) {
@@ -126,7 +128,7 @@ export function validateUrl(url) {
     .then((res) => res.text())
     .then((html) => {
       parseHtml(html, url);
-      printWarnings();
+      printWarnings(url);
     })
     .catch((err) => {
       console.log(err);
