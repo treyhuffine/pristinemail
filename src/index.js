@@ -182,9 +182,3 @@ export function validateUrl(url, options = {}) {
       console.log(err);
     });
 }
-
-validateFile(file, {
-  writeFile: true,
-  filePath: __dirname
-});
-validateFile(file);
