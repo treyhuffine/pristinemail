@@ -28,3 +28,4 @@ chrome-user-data
 *.iml
 .vscode
 lib
+src/validation.txt

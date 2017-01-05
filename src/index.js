@@ -86,12 +86,50 @@ function printWarnings(source) {
       console.log(styleNameText + occurencesText);
 
       for (const [platform, message] of styleUsage.platforms) {
-        console.log(chalk.red(`  - ${platform}${message}`));
+        console.log(chalk.red(`   * ${platform}${message}`));
       }
 
       console.log('');
     }
   }
+}
+
+function saveWarningsToFile(source, filePath) {
+  const writePath = path.join(__dirname, './validation.txt'),
+    writeStream = fs.createWriteStream(writePath);
+
+  writeStream.write(`Source: ${source} \n\n`);
+
+  if (unrecognized.size > 0) {
+    writeStream.write('Unrecognized styles:\n\n');
+    writeStream.write('');
+
+    unrecognized.forEach((style) => {
+      writeStream.write(`  * ${style}\n`);
+    });
+
+    writeStream.write('\n----------------------------------------- \n\n');
+  }
+
+  if (unsupported.size > 0) {
+    writeStream.write('Unsupported Styles:\n');
+
+    for (const [style, styleUsage] of unsupported) {
+      const styleNameText = `\n ${style} - `,
+        occurences = styleUsage.occurences / styleUsage.platforms.size,
+        occurencesText = `${occurences} occurences\n`;
+
+      writeStream.write(styleNameText + occurencesText);
+
+      for (const [platform, message] of styleUsage.platforms) {
+        writeStream.write(`   * ${platform}${message}\n`);
+      }
+    }
+  }
+
+  writeStream.end();
+
+  console.log(`File saved to ${writePath}`);
 }
 
 function parseHtml(html, source) {
@@ -117,22 +155,36 @@ function parseHtml(html, source) {
   }
 }
 
-export function validateFile(fileName) {
+export function validateFile(fileName, options = {}) {
   const html = fs.readFileSync(fileName);
   parseHtml(html, fileName);
-  printWarnings(fileName);
+
+  if (options.writeFile && options.filePath) {
+    saveWarningsToFile(fileName, options.filePath)
+  } else {
+    printWarnings(fileName);
+  }
 }
 
-export function validateUrl(url) {
+export function validateUrl(url, options = {}) {
   fetch(url)
     .then((res) => res.text())
     .then((html) => {
       parseHtml(html, url);
-      printWarnings(url);
+
+      if (options.writeFile && options.filePath) {
+        saveWarningsToFile(url, options.filePath)
+      } else {
+        printWarnings(url);
+      }
     })
     .catch((err) => {
       console.log(err);
     });
 }
 
+validateFile(file, {
+  writeFile: true,
+  filePath: __dirname
+});
 validateFile(file);
