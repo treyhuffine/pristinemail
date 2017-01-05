@@ -6,9 +6,7 @@ import Queue from 'queue-fifo';
 import chalk from 'chalk';
 import supportMatrix from './support-matrix.json';
 
-const unsupported = new Map(),
-  unrecognized = new Set(),
-  file = path.join(__dirname, '../examples/example.html'),
+const file = path.join(__dirname, '../examples/example.html'),
   platforms = [
     'gmail',
     'gmail-android',
@@ -20,8 +18,9 @@ const unsupported = new Map(),
     'outlook-web'
   ];
 
-function validateNodeStyle(node) {
-  const css = node.css();
+function validateNodeStyle(node, warnings) {
+  const { unrecognized, unsupported } = warnings,
+    css = node.css();
 
   for (const style in css) {
     const compatabilityInfo = supportMatrix[style];
@@ -58,9 +57,12 @@ function validateNodeStyle(node) {
       }
     }
   }
+
+  return { unsupported, unrecognized };
 }
 
-function printWarnings(source) {
+function printWarnings(warnings, source) {
+  const { unrecognized, unsupported } = warnings;
   console.log(chalk.bold.underline(`\nSource: ${source} \n`));
 
   if (unrecognized.size > 0) {
@@ -94,8 +96,9 @@ function printWarnings(source) {
   }
 }
 
-function saveWarningsToFile(source, filePath) {
-  const writePath = path.join(__dirname, './validation.txt'),
+function writeWarningsToTxt(warnings, source) {
+  const { unrecognized, unsupported } = warnings,
+    writePath = path.join(__dirname, './validation.txt'),
     writeStream = fs.createWriteStream(writePath);
 
   writeStream.write(`Source: ${source} \n\n`);
@@ -136,6 +139,10 @@ function parseHtml(html, source) {
   const $ = cheerio.load(html),
     $root = $('body')[0],
     queue = new Queue();
+  let warnings = {
+      unsupported: new Map(),
+      unrecognized: new Set()
+    };
 
   queue.enqueue($root);
 
@@ -143,7 +150,7 @@ function parseHtml(html, source) {
     const node = $(queue.dequeue()),
       children = node.children();
 
-    validateNodeStyle(node);
+    warnings = validateNodeStyle(node, warnings);
 
     if (children.length) {
       for (let i = 0; i < children.length; i++) {
@@ -153,32 +160,38 @@ function parseHtml(html, source) {
       }
     }
   }
+
+  return warnings;
+}
+
+function processWarnings(warnings, source, options) {
+  if (options.output === 'txt') {
+    writeWarningsToTxt(warnings, source)
+  } else if (options.output === 'html') {
+    writeWarningsToHtml(warnings, source);
+  } else {
+    printWarnings(warnings, source);
+  }
 }
 
 export function validateFile(fileName, options = {}) {
-  const html = fs.readFileSync(fileName);
-  parseHtml(html, fileName);
+  const html = fs.readFileSync(fileName),
+    warnings = parseHtml(html, fileName);
 
-  if (options.writeFile && options.filePath) {
-    saveWarningsToFile(fileName, options.filePath)
-  } else {
-    printWarnings(fileName);
-  }
+  processWarnings(warnings, fileName, options);
 }
 
 export function validateUrl(url, options = {}) {
   fetch(url)
     .then((res) => res.text())
     .then((html) => {
-      parseHtml(html, url);
+      const warnings = parseHtml(html, url);
 
-      if (options.writeFile && options.filePath) {
-        saveWarningsToFile(url, options.filePath)
-      } else {
-        printWarnings(url);
-      }
+      processWarnings(warnings, url, options);
     })
     .catch((err) => {
       console.log(err);
     });
 }
+
+validateFile(file)
