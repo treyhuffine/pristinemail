@@ -41,22 +41,22 @@ export function baseHtml(markdown, style = markdownStyles) {
 }
 
 export function markdownToHtml(fileName, options = {}) {
-  fs.readFile(fileName, 'utf-8', (err, markdown) => {
-    const markdownHtml = marked(markdown);
-    let html = { markdownHtml, htmlDoc: '' };
 
-    if (options.buildHtmlDoc) {
-      const htmlDoc = baseHtml(markdownHtml);
+  const markdown = fs.readFileSync(fileName, 'utf-8'),
+    markdownHtml = marked(markdown);
+  let html = { markdownHtml, htmlDoc: '' };
 
-      html.htmlDoc = htmlDoc;
+  if (options.buildHtmlDoc) {
+    const htmlDoc = baseHtml(markdownHtml);
 
-      if (options.writePath) {
-        fs.writeFile(options.writePath, htmlDoc);
+    html.htmlDoc = htmlDoc;
 
-        console.log(chalk.blue(`* HTML saved to ${options.writePath}\n`));
-      }
+    if (options.writePath) {
+      fs.writeFile(options.writePath, htmlDoc);
+
+      console.log(chalk.blue(`* HTML saved to ${options.writePath}\n`));
     }
+  }
 
-    return html;
-  });
+  return html;
 }

@@ -11,7 +11,7 @@ pristinemail.validateFile(
   { output: ['print', 'markdown'] }
 );
 
-pristinemail.markdownToHtml(
+const html = pristinemail.markdownToHtml(
   markdownValidationPath,
   {
     buildHtmlDoc: true,
