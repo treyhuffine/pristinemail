@@ -14,7 +14,7 @@ pristinemail.validateFile(
 pristinemail.markdownToHtml(
   markdownValidationPath,
   {
-    writeFile: true,
+    buildHtmlDoc: true,
     writePath: htmlValidationPath
   }
 );

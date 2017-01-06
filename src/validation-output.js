@@ -38,9 +38,9 @@ function markdownConflict(conflicts) {
   return markdown;
 }
 
-export function logAnalysis(emailAnalysis, source) {
+export function logAnalysis(emailAnalysis, emailSource) {
   const { unrecognized, warning, unsupported } = emailAnalysis;
-  console.log(chalk.bold.underline(`\nSource: ${source} \n`));
+  console.log(chalk.bold.underline(`\nSource: ${emailSource} \n`));
 
   if (unsupported.size > 0) {
     console.log(chalk.white.bgRed(' Unsupported Styles: '));
@@ -77,13 +77,13 @@ export function logAnalysis(emailAnalysis, source) {
 
 export function writeAnalysisToMarkdown(
   emailAnalysis,
-  source,
+  emailSource,
   writePath = './validation.md'
 ) {
   const { unrecognized, warning, unsupported } = emailAnalysis;
   let fileText = '';
 
-  fileText += `## Source: [${source}](${source}) \n\n`;
+  fileText += `## Source: [${emailSource}](${emailSource}) \n\n`;
 
   if (unsupported.size > 0) {
     fileText += '### Unsupported Styles:\n';
@@ -144,7 +144,7 @@ export function writeAnalysisToMarkdown(
 
 export function processEmailAnalysis(
   emailAnalysis,
-  source,
+  emailSource,
   writePath,
   options = {}
 ) {
@@ -154,16 +154,16 @@ export function processEmailAnalysis(
   }
 
   if (!options.output) {
-    outputMethods.print(emailAnalysis, source);
+    outputMethods.print(emailAnalysis, emailSource);
   } else if (Array.isArray(options.output)) {
     options.output.forEach((method) => {
       if (outputMethods[method]) {
-        outputMethods[method](emailAnalysis, source, writePath);
+        outputMethods[method](emailAnalysis, emailSource, writePath);
       }
     });
   } else if (typeof options.output === 'string') {
       if (outputMethods[options.output]) {
-        outputMethods[options.output](emailAnalysis, source)
+        outputMethods[options.output](emailAnalysis, emailSource)
       }
   } else {
     return new Error('Incompatible output method');
