@@ -1,7 +1,7 @@
 {
   "name": "pristinemail",
   "version": "1.0.11",
-  "description": "Cross client email style and css validations to ensure perfect emails for everyone, everytime.",
+  "description": "Cross client email style and css validations to ensure perfect emails for everyone, every time.",
   "author": "Trey Huffine <treyhuffine@gmail.com>",
   "main": "lib/index.js",
   "scripts": {
