@@ -1,17 +1,8 @@
 ## Source: [/Users/treyhuffine/workspace/pristinemail/examples/example.html](/Users/treyhuffine/workspace/pristinemail/examples/example.html) 
 
 ### Unsupported Styles:
-__`line-height`__ - 1 occurences 
- * outlook-web: line-height on td is ignored, use on p instead.
-
 __`margin`__ - 6 occurences 
  * outlook-web
-
-__`padding`__ - 5 occurences 
- * outlook: padding for p, div and a tags is not supported
-
-__`width`__ - 9 occurences 
- * outlook: width for p and div tags is not supported
 
 __`display`__ - 4 occurences 
  * gmail
@@ -30,19 +21,11 @@ __`opacity`__ - 1 occurences
  * outlook-legacy
 
 __`overflow`__ - 1 occurences 
- * gmail: overflow: hidden; does not work
- * gmail-android: overflow: scroll; does not work
- * yahoo-mail: overflow: hidden; does not work
  * outlook
- * outlook-web: overflow: hidden; does not work
 
 __`visibility`__ - 1 occurences 
  * gmail
  * outlook
-
-__`background`__ - 1 occurences 
- * outlook: background images not supported
- * outlook-web: background images not supported
 
 __`border-radius`__ - 3 occurences 
  * gmail-android
@@ -53,12 +36,6 @@ __`border-radius`__ - 3 occurences
 __`clear`__ - 1 occurences 
  * outlook
 
-__`padding-top`__ - 1 occurences 
- * outlook: padding for p, div and a tags is not supported
-
-__`padding-bottom`__ - 1 occurences 
- * outlook: padding for p, div and a tags is not supported
-
 __`cursor`__ - 1 occurences 
  * gmail
  * gmail-android
@@ -68,6 +45,36 @@ __`border-color`__ - 1 occurences
  * gmail-android
  * outlook
  * outlook-legacy
+
+
+___ 
+### Potential Conflict Warning:
+#### These styles may not be fully supported. Verify your html email uses them appropriately.
+
+__`line-height`__ - 1 occurences 
+ * outlook-web: line-height on td is ignored, use on p instead.
+
+__`padding`__ - 5 occurences 
+ * outlook: padding for p, div and a tags is not supported
+
+__`width`__ - 9 occurences 
+ * outlook: width for p and div tags is not supported
+
+__`overflow`__ - 1 occurences 
+ * gmail: overflow: hidden; does not work
+ * gmail-android: overflow: scroll; does not work
+ * yahoo-mail: overflow: hidden; does not work
+ * outlook-web: overflow: hidden; does not work
+
+__`background`__ - 1 occurences 
+ * outlook: background images not supported
+ * outlook-web: background images not supported
+
+__`padding-top`__ - 1 occurences 
+ * outlook: padding for p, div and a tags is not supported
+
+__`padding-bottom`__ - 1 occurences 
+ * outlook: padding for p, div and a tags is not supported
 
 
 ___ 

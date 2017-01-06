@@ -1,22 +1,22 @@
 import fs from 'fs';
 import fetch from 'node-fetch';
-import { processWarnings } from './validation-output';
+import { processEmailAnalysis } from './validation-output';
 import { parseHtml } from './html-parser'
 
 export function validateFile(fileName, writePath ,options = {}) {
   const html = fs.readFileSync(fileName),
-    warnings = parseHtml(html, fileName);
+    emailAnalysis = parseHtml(html, fileName);
 
-  processWarnings(warnings, fileName, writePath, options);
+  processEmailAnalysis(emailAnalysis, fileName, writePath, options);
 }
 
 export function validateUrl(url, writePath, options = {}) {
   fetch(url)
     .then((res) => res.text())
     .then((html) => {
-      const warnings = parseHtml(html, url);
+      const emailAnalysis = parseHtml(html, url);
 
-      processWarnings(warnings, url, writePath, options);
+      processEmailAnalysis(emailAnalysis, url, writePath, options);
     })
     .catch((err) => {
       console.log(err);

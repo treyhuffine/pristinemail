@@ -9,8 +9,11 @@ const markdownStyles = `body {
   #unsupported-styles- {
     color: red;
   }
-  #unrecognized-styles- {
+  #potential-conflict-warning- {
     color: orange;
+  }
+  #unrecognized-styles- {
+    color: magenta;
   }
   code {
     backround-color: #F7F7F7;

@@ -2,49 +2,85 @@ import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 
-export function logWarnings(warnings, source) {
-  const { unrecognized, unsupported } = warnings;
+function printConflict(conflicts) {
+  for (const [style, styleUsage] of conflicts) {
+    const styleNameText = chalk.yellow.bold(` ${style} - `),
+      occurences = styleUsage.occurences / styleUsage.platforms.size,
+      occurencesText = `${occurences} occurences`;
+
+    console.log(styleNameText + occurencesText);
+
+    for (const [platform, message] of styleUsage.platforms) {
+      console.log(chalk.yellow(`   * ${platform}${message}`));
+    }
+
+    console.log('');
+  }
+}
+
+function markdownConflict(conflicts) {
+  let markdown = '';
+
+  for (const [style, styleUsage] of conflicts) {
+    const styleNameText = `__\`${style}\`__ - `,
+      occurences = styleUsage.occurences / styleUsage.platforms.size,
+      occurencesText = `${occurences} occurences \n`;
+
+    markdown += styleNameText + occurencesText;
+
+    for (const [platform, message] of styleUsage.platforms) {
+      markdown += ` * ${platform}${message}\n`;
+    }
+
+    markdown += '\n';
+  }
+
+  return markdown;
+}
+
+export function logAnalysis(emailAnalysis, source) {
+  const { unrecognized, warning, unsupported } = emailAnalysis;
   console.log(chalk.bold.underline(`\nSource: ${source} \n`));
 
   if (unsupported.size > 0) {
     console.log(chalk.white.bgRed(' Unsupported Styles: '));
     console.log('');
 
-    for (const [style, styleUsage] of unsupported) {
-      const styleNameText = chalk.red.bold(` ${style} - `),
-        occurences = styleUsage.occurences / styleUsage.platforms.size,
-        occurencesText = `${occurences} occurences`;
+    printConflict(unsupported)
 
-      console.log(styleNameText + occurencesText);
+    console.log(chalk.cyan('\n----------------------------------------- \n\n'));
+  }
 
-      for (const [platform, message] of styleUsage.platforms) {
-        console.log(chalk.red(`   * ${platform}${message}`));
-      }
+  if (warning.size > 0) {
+    console.log(chalk.white.bgYellow(' Potential Conflict Warning: '));
+    console.log(chalk.yellow(
+      ['These styles may not be fully supported.',
+      ' Verify your email uses them appropriately.\n'].join('')
+    ));
 
-      console.log('');
-    }
+    printConflict(warning)
 
     console.log(chalk.cyan('\n----------------------------------------- \n\n'));
   }
 
   if (unrecognized.size > 0) {
-    console.log(chalk.white.bgYellow(' Unrecognized styles: '));
+    console.log(chalk.white.bgMagenta(' Unrecognized styles: '));
     console.log('');
 
     unrecognized.forEach((style) => {
-      console.log(chalk.yellow(`  * ${style}`));
+      console.log(chalk.magenta(`  * ${style}`));
     });
 
     console.log('');
   }
 }
 
-export function writeWarningsToMarkdown(
-  warnings,
+export function writeAnalysisToMarkdown(
+  emailAnalysis,
   source,
   writePath = './validation.md'
 ) {
-  const { unrecognized, unsupported } = warnings;
+  const { unrecognized, warning, unsupported } = emailAnalysis;
   let fileText = '';
 
   fileText += `## Source: [${source}](${source}) \n\n`;
@@ -53,6 +89,30 @@ export function writeWarningsToMarkdown(
     fileText += '### Unsupported Styles:\n';
 
     for (const [style, styleUsage] of unsupported) {
+      const styleNameText = `__\`${style}\`__ - `,
+        occurences = styleUsage.occurences / styleUsage.platforms.size,
+        occurencesText = `${occurences} occurences \n`;
+
+      fileText += styleNameText + occurencesText;
+
+      for (const [platform, message] of styleUsage.platforms) {
+        fileText += ` * ${platform}${message}\n`;
+      }
+
+      fileText += '\n';
+    }
+
+    fileText += '\n___ \n';
+  }
+
+  if (unsupported.size > 0) {
+    fileText += '### Potential Conflict Warning:\n';
+    fileText += (
+      ['#### These styles may not be fully supported.',
+      ' Verify your html email uses them appropriately.\n\n'].join('')
+    );
+
+    for (const [style, styleUsage] of warning) {
       const styleNameText = `__\`${style}\`__ - `,
         occurences = styleUsage.occurences / styleUsage.platforms.size,
         occurencesText = `${occurences} occurences \n`;
@@ -82,23 +142,28 @@ export function writeWarningsToMarkdown(
   console.log(chalk.green(`* Markdown saved to ${writePath}\n`));
 }
 
-export function processWarnings(warnings, source, writePath, options = {}) {
+export function processEmailAnalysis(
+  emailAnalysis,
+  source,
+  writePath,
+  options = {}
+) {
   const outputMethods = {
-    'markdown': writeWarningsToMarkdown,
-    'print': logWarnings
+    'markdown': writeAnalysisToMarkdown,
+    'print': logAnalysis
   }
 
   if (!options.output) {
-    outputMethods.print(warnings, source);
+    outputMethods.print(emailAnalysis, source);
   } else if (Array.isArray(options.output)) {
     options.output.forEach((method) => {
       if (outputMethods[method]) {
-        outputMethods[method](warnings, source, writePath);
+        outputMethods[method](emailAnalysis, source, writePath);
       }
     });
   } else if (typeof options.output === 'string') {
       if (outputMethods[options.output]) {
-        outputMethods[options.output](warnings, source)
+        outputMethods[options.output](emailAnalysis, source)
       }
   } else {
     return new Error('Incompatible output method');

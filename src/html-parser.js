@@ -13,8 +13,19 @@ const PLATFORMS = [
     'outlook-web'
   ];
 
-export function validateNodeStyle(node, warnings, options = {}) {
-  const { unrecognized, unsupported } = warnings,
+function containsMessage(supportCriteria) {
+    return typeof supportCriteria === 'string';
+}
+
+function addConflict(conflict, platform, message) {
+  conflict.occurences++;
+  conflict.platforms.set(platform, message);
+
+  return conflict;
+}
+
+export function validateNodeStyle(node, emailAnalysis, options = {}) {
+  const { unsupported, warning, unrecognized } = emailAnalysis,
     css = node.css(),
     platforms = PLATFORMS;
 
@@ -26,11 +37,23 @@ export function validateNodeStyle(node, warnings, options = {}) {
         const platformSupport = compatabilityInfo[platform];
         let message = '';
 
-        if (typeof platformSupport === 'string') {
-          message = `: ${platformSupport.toLowerCase()}`;
-        }
+        if (containsMessage(platformSupport)) {
+          if (!warning.has(style)) {
+            warning.set(style, {
+              occurences: 0,
+              platforms: new Map()
+            });
+          }
 
-        if (!platformSupport || message.length > 0) {
+          const potentialConflict = warning.get(style);
+
+          message = `: ${platformSupport.toLowerCase()}`;
+
+          warning.set(
+            style,
+            addConflict(potentialConflict, platform, message)
+          );
+        } else if (!platformSupport) {
           if (!unsupported.has(style)) {
             unsupported.set(style, {
               occurences: 0,
@@ -40,11 +63,10 @@ export function validateNodeStyle(node, warnings, options = {}) {
 
           const unsupportedStyle = unsupported.get(style);
 
-          unsupportedStyle.occurences++;
-
-          unsupportedStyle.platforms.set(platform, message);
-
-          unsupported.set(style, unsupportedStyle);
+          unsupported.set(
+            style,
+            addConflict(unsupportedStyle, platform, message)
+          );
         }
       });
     } else {
@@ -54,7 +76,7 @@ export function validateNodeStyle(node, warnings, options = {}) {
     }
   }
 
-  return { unsupported, unrecognized };
+  return { unsupported, warning, unrecognized };
 }
 
 
@@ -63,8 +85,9 @@ export function parseHtml(html, source) {
   const $ = cheerio.load(html),
     $root = $('body')[0],
     queue = new Queue();
-  let warnings = {
+  let emailAnalysis = {
       unsupported: new Map(),
+      warning: new Map(),
       unrecognized: new Set()
     };
 
@@ -74,7 +97,7 @@ export function parseHtml(html, source) {
     const node = $(queue.dequeue()),
       children = node.children();
 
-    warnings = validateNodeStyle(node, warnings);
+    emailAnalysis = validateNodeStyle(node, emailAnalysis);
 
     if (children.length) {
       for (let i = 0; i < children.length; i++) {
@@ -85,5 +108,5 @@ export function parseHtml(html, source) {
     }
   }
 
-  return warnings;
+  return emailAnalysis;
 }
