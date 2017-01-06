@@ -43,7 +43,7 @@ export function markdownToHtml(fileName, options = {}) {
     if (options.writeFile && options.writePath) {
       fs.writeFile(options.writePath, html);
 
-      console.log(chalk.blue(`* HTML saved to ${options.writePath}`));
+      console.log(chalk.blue(`* HTML saved to ${options.writePath}\n`));
     }
 
     return html;

@@ -79,7 +79,7 @@ export function writeWarningsToMarkdown(
 
   fs.writeFileSync(writePath, fileText);
 
-  console.log(chalk.green(`* Markdown saved to ${writePath}`));
+  console.log(chalk.green(`* Markdown saved to ${writePath}\n`));
 }
 
 export function processWarnings(warnings, source, writePath, options = {}) {
